@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "spot-auto-seller"
+version = "0.1.0"
+description = ""
+authors = ["Anton <109826223+Arcadiyyyyyyyy@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "spot_auto_seller"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+python-binance = "^1.0.19"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
