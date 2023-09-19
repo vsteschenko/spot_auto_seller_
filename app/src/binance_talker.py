@@ -4,32 +4,40 @@ from os import environ
 from .static.constant import MinimumToDisplay
 
 
-def create_connection() -> Client:
-    api_public = environ.get("BINANCE_API_PUBLIC")
-    api_secret = environ.get("BINANCE_API_SECRET")
-    return Client(api_public, api_secret)
+class BinanceConnector:
+    c = None
 
+    def __init__(self):
+        self.c = self._create_connection()
 
-def get_spot_balance() -> list:
-    c = create_connection()
-    assets_that_cost_more_than_x = []
+    def get_account_data(self):
+        tickers_for_search = self._get_spot_balance()
+        return self._get_tickers_price(tickers_for_search)
 
-    for asset in c.get_user_asset():
-        free_amount_of_asset = float(asset.get("free"))
-        asset_btc_valuation = float(asset.get("btcValuation"))
+    @staticmethod
+    def _create_connection() -> Client:
+        api_public = environ.get("BINANCE_API_PUBLIC")
+        api_secret = environ.get("BINANCE_API_SECRET")
+        return Client(api_public, api_secret)
 
-        if free_amount_of_asset > 0 and asset_btc_valuation > MinimumToDisplay.minimum_asset_btc_cost.value:
-            assets_that_cost_more_than_x.append(asset)
+    def _get_spot_balance(self) -> list:
+        assets_that_cost_more_than_x = []
 
-    return assets_that_cost_more_than_x
+        for asset in self.c.get_user_asset():
+            free_amount_of_asset = float(asset.get("free"))
+            asset_btc_valuation = float(asset.get("btcValuation"))
 
+            if free_amount_of_asset > 0 and \
+                    asset_btc_valuation > MinimumToDisplay.minimum_asset_btc_cost.value:
+                assets_that_cost_more_than_x.append(asset)
 
-def get_tickers_price(tickers_to_search: list[str]):
-    c = create_connection()
-    pairs = []
+        return assets_that_cost_more_than_x
 
-    for symbol in tickers_to_search:
-        ticker = c.get_ticker(symbol=symbol)
-        pairs.append(ticker)
+    def _get_tickers_price(self, tickers_to_search: list[str]):
+        pairs = []
 
-    return pairs
+        for symbol in tickers_to_search:
+            ticker = self.c.get_ticker(symbol=symbol)
+            pairs.append(ticker)
+
+        return pairs
