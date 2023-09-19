@@ -12,6 +12,7 @@ class BinanceConnector:
 
     def get_account_data(self):
         tickers_for_search = self._get_spot_balance()
+        tickers_for_search = self._clean_tickers_list(tickers_for_search)
         return self._get_tickers_price(tickers_for_search)
 
     @staticmethod
@@ -20,7 +21,7 @@ class BinanceConnector:
         api_secret = environ.get("BINANCE_API_SECRET")
         return Client(api_public, api_secret)
 
-    def _get_spot_balance(self) -> list:
+    def _get_spot_balance(self) -> list[dict]:
         assets_that_cost_more_than_x = []
 
         for asset in self.c.get_user_asset():
@@ -33,11 +34,20 @@ class BinanceConnector:
 
         return assets_that_cost_more_than_x
 
-    def _get_tickers_price(self, tickers_to_search: list[str]):
-        pairs = []
+    def _clean_tickers_list(self, tickers_list: list[dict]):
+        # It's probably can be refactored, because this is kinda shit
+        spot_pairs = [x.get("symbol") for x in self.c.get_exchange_info().get("symbols")]
+        for x in tickers_list:
+            if f"{x.get('symbol', '')}USDT" not in spot_pairs:
+                tickers_list.remove(x)
+        return tickers_list
 
-        for symbol in tickers_to_search:
+    def _get_tickers_price(self, tickers_to_search: list[dict]):
+        result_pairs = []
+        pairs_to_search = [f"{x.get('asset')}USDT" for x in tickers_to_search]
+
+        for symbol, deposit_info in zip(pairs_to_search, tickers_to_search):
             ticker = self.c.get_ticker(symbol=symbol)
-            pairs.append(ticker)
+            result_pairs.append({**ticker, **deposit_info})
 
-        return pairs
+        return result_pairs
