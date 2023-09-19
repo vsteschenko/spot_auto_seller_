@@ -1,5 +1,4 @@
 import logging
-
 from src.config import Settings, configure_logging
 from dotenv import load_dotenv
 
