@@ -39,7 +39,7 @@ WORKDIR /spot_auto_seller
 RUN poetry check
 
 # Install Dependencies with --no-root
-RUN poetry install --no-root --no-interaction --no-cache --without dev
+RUN poetry install --no-root --no-interaction --no-cache
 
 # Copy Application
 COPY . .

@@ -9,6 +9,7 @@ packages = [{include = "spot_auto_seller"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 python-binance = "^1.0.19"
+pydantic-settings = "^2.0.3"
 
 
 [build-system]
