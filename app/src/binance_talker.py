@@ -4,12 +4,14 @@ from os import environ
 from .static.constant import MinimumToDisplay
 
 
-def check_spot_balance() -> list:
+def create_connection() -> Client:
     api_public = environ.get("BINANCE_API_PUBLIC")
     api_secret = environ.get("BINANCE_API_SECRET")
-    c = Client(api_public, api_secret)
-    del api_public, api_secret
+    return Client(api_public, api_secret)
 
+
+def get_spot_balance() -> list:
+    c = create_connection()
     assets_that_cost_more_than_x = []
 
     for asset in c.get_user_asset():
@@ -20,3 +22,14 @@ def check_spot_balance() -> list:
             assets_that_cost_more_than_x.append(asset)
 
     return assets_that_cost_more_than_x
+
+
+def get_tickers_price(tickers_to_search: list[str]):
+    c = create_connection()
+    pairs = []
+
+    for symbol in tickers_to_search:
+        ticker = c.get_ticker(symbol=symbol)
+        pairs.append(ticker)
+
+    return pairs

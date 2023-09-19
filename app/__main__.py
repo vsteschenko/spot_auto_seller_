@@ -1,5 +1,5 @@
 from src.config import Settings
-from src.binance_talker import check_spot_balance
+from src.binance_talker import get_tickers_price
 from dotenv import load_dotenv
 
 
@@ -7,7 +7,7 @@ def main():
     load_dotenv()
     Settings()
 
-    print(check_spot_balance())  # Testing purposes TODO: remove
+    print(get_tickers_price(["BTCUSDT", "BNBUSDT"]))  # Testing purposes TODO: remove
 
 
 if __name__ == "__main__":
