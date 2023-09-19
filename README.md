@@ -1,6 +1,7 @@
 # Installation
 
-Clone the repo, create .env file in the project root directory
+Clone the repo, create .env file in the project root directory, and fill it with required variables \
+(can be found in /app/src/config.py:Settings)
 
 ### Run with poetry (dev)
 Make sure you have poetry installed
