@@ -1,6 +1,9 @@
 from binance import Client
 from os import environ
 
+from config import Settings
+from pydantic import BaseSettings
+
 from .static.constant import MinimumToDisplay
 from .calculations import is_more_than_min_order
 
@@ -10,14 +13,17 @@ class BinanceConnector:
 
     def __init__(self):
         self.c = self._create_connection()
+        self.tickers_to_sell  = settings.LIST_OF_TICKERS_TO_SELL.split(',')
 
-    def get_account_data(self):
+    def get_account_data(self, ticker_to_check):
         tickers_for_search = self._get_spot_balance()
-        tickers_for_search = self._clean_tickers_list(tickers_for_search)
-        tickers_price = self._get_tickers_price(tickers_for_search)
-        tickers_full_info = self._append_exchange_info_about_ticker(tickers_price)
-        return [is_more_than_min_order(x) for x in tickers_full_info]
-
+        if ticker_to_check in self.tickers_to_sell:
+            tickers_for_search = self._clean_tickers_list(tickers_for_search)
+            tickers_price = self._get_tickers_price(tickers_for_search)
+            tickers_full_info = self._append_exchange_info_about_ticker(tickers_price)
+            return [is_more_than_min_order(x) for x in tickers_full_info]
+        else:
+            return print(f"{ticker_to_check} is not in ticker list")
     @staticmethod
     def _create_connection() -> Client:
         api_public = environ.get("BINANCE_API_PUBLIC")
