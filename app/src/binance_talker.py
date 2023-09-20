@@ -1,34 +1,29 @@
 from binance import Client
 from os import environ
 
-from config import Settings
-from pydantic import BaseSettings
-
-from .static.constant import MinimumToDisplay
+from .static.constant import MinimumToDisplay, Other
 from .calculations import is_more_than_min_order
 
-#привет-пока
-class BinanceConnector:
+
+def _create_connection() -> Client:
+    api_public = environ.get("BINANCE_API_PUBLIC")
+    api_secret = environ.get("BINANCE_API_SECRET")
+    return Client(api_public, api_secret)
+
+
+class BinanceGetInfoConnector:
     c = None
 
     def __init__(self):
-        self.c = self._create_connection()
-        self.tickers_to_sell  = settings.LIST_OF_TICKERS_TO_SELL.split(',')
+        self.c = _create_connection()
 
-    def get_account_data(self, ticker_to_check):
-        tickers_for_search = self._get_spot_balance()
-        if ticker_to_check in self.tickers_to_sell:
-            tickers_for_search = self._clean_tickers_list(tickers_for_search)
-            tickers_price = self._get_tickers_price(tickers_for_search)
-            tickers_full_info = self._append_exchange_info_about_ticker(tickers_price)
-            return [is_more_than_min_order(x) for x in tickers_full_info]
-        else:
-            return print(f"{ticker_to_check} is not in ticker list")
-    @staticmethod
-    def _create_connection() -> Client:
-        api_public = environ.get("BINANCE_API_PUBLIC")
-        api_secret = environ.get("BINANCE_API_SECRET")
-        return Client(api_public, api_secret)
+    def get_account_data(self):
+        spot_balance = self._get_spot_balance()
+        tickers_for_search = self._clean_tickers_list(spot_balance)
+        tickers_with_price = self._get_tickers_price(tickers_for_search)
+        tickers_with_exchange_info = self._append_exchange_info_about_ticker(tickers_with_price)
+        tickers_calculated_min_order_info = [is_more_than_min_order(x) for x in tickers_with_exchange_info]
+        return [x for x in tickers_calculated_min_order_info if x.get("is_more_than_min_order") is True]
 
     def _get_spot_balance(self) -> list[dict]:
         assets_that_cost_more_than_x = []
@@ -75,3 +70,35 @@ class BinanceConnector:
             result_pairs.append({**ticker, **deposit_info})
 
         return result_pairs
+
+
+class BinancePostInfoConnector:
+    c = None
+
+    def __init__(self):
+        self.c = _create_connection()
+
+    def sell_all_spot_coins_with_ticker(self, ticker_info: dict):
+        ticker = ticker_info.get("symbol")
+        precision_string = ""
+
+        for x in ticker_info.get("filters"):
+            if x.get("filterType") == "LOT_SIZE":
+                precision_string = x.get("minQty", 0.0)
+                break
+
+        # TODO: convert precision string to integer.
+        #  API returns precision as "0.01000" or "0.100000" or "1.00000" or "0.00010000".
+        #  You need to convert into round argument for quantity calculation.
+        #  For example: if you got "0.100000" = you should have precision as 1.
+        #  If you got "1.00000" = as 0. If you got "0.00010000" = as 4
+        precision: int = int(precision_string)
+
+        quantity = round(ticker_info.get("available_to_sell_coin") * Other.sell_order_multiplier.value, precision)
+
+        self.c.create_order(
+            symbol=ticker,
+            side="SELL",
+            type="MARKET",
+            quantity=quantity
+        )
