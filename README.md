@@ -15,12 +15,14 @@ or with ide run configuration using poetry venv
 ### Run with docker (prod)
 Make sure you have docker installed
 
-Build an image with `docker build -t test_spot_auto_seller .` from the project root directory
+Build an image with `docker build -t test_spot_auto_seller .` from the project root directory, \
+or pull from the latest package release with `docker pull ghcr.io/arcadiyyyyyyyy/spot_auto_seller/spot_auto_seller:refs_heads_main`
 
 Run from the project root directory with 
 ```
 docker run -d --name=spot_auto_seller_container --env-file=.env test_spot_auto_seller
 ``` 
+or `ghcr.io/arcadiyyyyyyyy/spot_auto_seller/spot_auto_seller:refs_heads_main` instead of `test_spot_auto_seller` if you have pulled the image
 
 # Deploy 
 
