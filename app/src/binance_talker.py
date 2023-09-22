@@ -1,6 +1,8 @@
 from binance import Client
 from os import environ
 
+import json
+
 from .static.constant import MinimumToDisplay, Other
 from .calculations import is_more_than_min_order
 
@@ -20,7 +22,11 @@ class BinanceGetInfoConnector:
     def get_account_data(self):
         spot_balance = self._get_spot_balance()
         tickers_for_search = self._clean_tickers_list(spot_balance)
-        tickers_with_price = self._get_tickers_price(tickers_for_search)
+        tickers_to_keep = [
+            ticker for ticker in tickers_for_search
+            if ticker.get('asset') in json.loads(environ.get("LIST_OF_TICKERS_TO_SELL", "[]"))
+        ]
+        tickers_with_price = self._get_tickers_price(tickers_to_keep)
         tickers_with_exchange_info = self._append_exchange_info_about_ticker(tickers_with_price)
         tickers_calculated_min_order_info = [is_more_than_min_order(x) for x in tickers_with_exchange_info]
         return [x for x in tickers_calculated_min_order_info if x.get("is_more_than_min_order") is True]
