@@ -105,7 +105,8 @@ class BinancePostInfoConnector:
     def __init__(self):
         self.c = _create_connection()
 
-    def convert_precision_to_integer(precision_string: str) -> int:
+    @staticmethod
+    def _convert_precision_to_integer(precision_string: str) -> int:
         precision_string = precision_string.rstrip('0')
         parts = precision_string.split(".")
         if len(parts) == 2:
@@ -123,13 +124,7 @@ class BinancePostInfoConnector:
                 precision_string = x.get("minQty", 0.0)
                 break
 
-
-        # TODO: convert precision string to integer.
-        #  API returns precision as "0.01000" or "0.100000" or "1.00000" or "0.00010000".
-        #  You need to convert into round argument for quantity calculation.
-        #  For example: if you got "0.100000" = you should have precision as 1.
-        #  If you got "1.00000" = as 0. If you got "0.00010000" = as 4
-        precision: int = self.convert_precision_to_integer(precision_string)
+        precision: int = self._convert_precision_to_integer(precision_string)
         quantity = round(ticker_info.get("available_to_sell_coin") * Other.sell_order_multiplier.value, precision)
 
         self.c.create_order(
@@ -138,5 +133,3 @@ class BinancePostInfoConnector:
             type="MARKET",
             quantity=quantity
         )
-
-
