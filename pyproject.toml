@@ -4,15 +4,26 @@ version = "0.1.0"
 description = ""
 authors = ["Anton <109826223+Arcadiyyyyyyyy@users.noreply.github.com>"]
 readme = "README.md"
-packages = [{include = "spot_auto_seller"}]
+packages = [{include = "app"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
 python-binance = "^1.0.19"
 pydantic-settings = "^2.0.3"
 schedule = "^1.2.0"
+pytelegrambotapi = "^4.14.0"
 
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.2"
+pytest-cov = "^4.1.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "--cov=app"
+testpaths = [
+    "tests",
+]
